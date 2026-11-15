@@ -1,26 +1,59 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ConflictException, Injectable,
+    NotFoundException } from "@nestjs/common";
+import { User } from "./user.interface";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+    private users: User[] = [
+        { id: 1, firstName: "Amira", lastName: "Ben Ali",
+            email: "amira@example.com", age: 22, isActive: true },
+        { id: 2, firstName: "Karim", lastName: "Mansour",
+            email: "karim@example.com", age: 24, isActive: true },
+        { id: 3, firstName: "Sarra", lastName: "Trabelsi",
+            email: "sarra@example.com", age: 21, isActive: false },
+    ];
+    private nextId = 4;
 
-  findAll() {
-    return `This action returns all users`;
-  }
+    findAll(): User[] {
+        return this.users;
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
+    findOne(id: number): User {
+        const user = this.users.find((u) => u.id === id);
+        if (!user) {
+            throw new NotFoundException(`Utilisateur ${id} introuvable`);
+        }
+        return user;
+    }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+    create(dto: CreateUserDto): User {
+        const email = dto.email.toLowerCase();
+        if (this.users.some((u) => u.email.toLowerCase() === email)) {
+            throw new ConflictException("Email déjà utilisé");
+        }
+        const user: User = { id: this.nextId++, ...dto, email };
+        this.users.push(user);
+        return user;
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+    update(id: number, dto: UpdateUserDto): User {
+        const user = this.findOne(id);
+        if (dto.email !== undefined) {
+            const email = dto.email.toLowerCase();
+            if (this.users.some((u) =>
+                u.id !== id && u.email.toLowerCase() === email)) {
+                throw new ConflictException("Email déjà utilisé");
+            }
+            dto.email = email;
+        }
+        Object.assign(user, dto);
+        return user;
+    }
+
+    remove(id: number): void {
+        this.findOne(id);
+        this.users = this.users.filter((u) => u.id !== id);
+    }
 }
