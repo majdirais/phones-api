@@ -1,26 +1,36 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePhoneDto } from './dto/create-phone.dto';
-import { UpdatePhoneDto } from './dto/update-phone.dto';
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { Phone } from "./phone.interface";
+import { CreatePhoneDto } from "./dto/create-phone.dto";
 
 @Injectable()
 export class PhonesService {
-  create(createPhoneDto: CreatePhoneDto) {
-    return 'This action adds a new phone';
-  }
+    private phones: Phone[] = [
+        { id: 1, nom: "iPhone 15", couleur: "Noir", stockage: 128 },
+        { id: 2, nom: "Galaxy S24", couleur: "Gris", stockage: 256 },
+        { id: 3, nom: "Pixel 8", couleur: "Blanc", stockage: 128 },
+    ];
+    private nextId = 4;
 
-  findAll() {
-    return `This action returns all phones`;
-  }
+    create(dto: CreatePhoneDto): Phone {
+        const duplicate = this.phones.some((p) =>
+            p.nom.toLowerCase() === dto.nom.toLowerCase());
+        if (duplicate) {
+            throw new ConflictException("Nom de téléphone déjà utilisé");
+        }
+        const phone: Phone = { id: this.nextId++, ...dto };
+        this.phones.push(phone);
+        return phone;
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} phone`;
-  }
+    findAll(): Phone[] {
+        return this.phones;
+    }
 
-  update(id: number, updatePhoneDto: UpdatePhoneDto) {
-    return `This action updates a #${id} phone`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} phone`;
-  }
+    findOne(id: number): Phone {
+        const phone = this.phones.find((p) => p.id === id);
+        if (!phone) {
+            throw new NotFoundException(`Téléphone ${id} introuvable`);
+        }
+        return phone;
+    }
 }

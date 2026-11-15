@@ -1,34 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { PhonesService } from './phones.service';
-import { CreatePhoneDto } from './dto/create-phone.dto';
-import { UpdatePhoneDto } from './dto/update-phone.dto';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { PhonesService } from "./phones.service";
+import { CreatePhoneDto } from "./dto/create-phone.dto";
 
-@Controller('phones')
+@Controller("phones")
 export class PhonesController {
-  constructor(private readonly phonesService: PhonesService) {}
+    constructor(private readonly phonesService: PhonesService) {}
 
-  @Post()
-  create(@Body() createPhoneDto: CreatePhoneDto) {
-    return this.phonesService.create(createPhoneDto);
-  }
+    @Post()
+    create(@Body() dto: CreatePhoneDto) {
+        return this.phonesService.create(dto);
+    }
 
-  @Get()
-  findAll() {
-    return this.phonesService.findAll();
-  }
+    @Get()
+    findAll() {
+        return this.phonesService.findAll();
+    }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.phonesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePhoneDto: UpdatePhoneDto) {
-    return this.phonesService.update(+id, updatePhoneDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.phonesService.remove(+id);
-  }
+    @Get(":id")
+    findOne(@Param("id", ParseIntPipe) id: number) {
+        return this.phonesService.findOne(id);
+    }
 }
